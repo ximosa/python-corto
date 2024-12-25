@@ -37,29 +37,39 @@ VOCES_DISPONIBLES = {
     'es-ES-Standard-C': texttospeech.SsmlVoiceGender.FEMALE
 }
 
-# Función de creación de texto
-def create_text_image(text, size=(1080, 1920), font_size=44, line_height=58):
+# Función de creación de texto (adaptada para shorts)
+def create_text_image(text, size=(1080, 1920), font_size=70, line_height=100):
     img = Image.new('RGB', size, 'black')
     draw = ImageDraw.Draw(img)
-    try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-    except:
-        font = ImageFont.load_default()
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
 
-    # Calculate the bounding box to center the text vertically
-    left, top, right, bottom = draw.multiline_textbbox((0, 0), text, font=font, align="center", spacing=8)
-    text_height = bottom - top
-    y = (size[1] - text_height) // 2
+    words = text.split()
+    lines = []
+    current_line = []
 
-    # Use multiline_text to draw the text
-    draw.multiline_text( ((size[0] - (right - left)) // 2, y), text, font=font, fill="white", align="center", spacing=8)
+    for word in words:
+        current_line.append(word)
+        test_line = ' '.join(current_line)
+        left, top, right, bottom = draw.textbbox((0, 0), test_line, font=font)
+        if right > size[0] - 120:
+            current_line.pop()
+            lines.append(' '.join(current_line))
+            current_line = [word]
+    lines.append(' '.join(current_line))
 
+    total_height = len(lines) * line_height
+    y = (size[1] - total_height) // 2
+
+    for line in lines:
+        left, top, right, bottom = draw.textbbox((0, 0), line, font=font)
+        x = (size[0] - (right - left)) // 2
+        draw.text((x, y), line, font=font, fill="white")
+        y += line_height
 
     return np.array(img)
 
-
 # Función de creación de video
-def create_simple_video(texto, nombre_salida, voz):
+def create_simple_video(texto, nombre_salida, voz, logo_url):
     archivos_temp = []
     clips_audio = []
     clips_finales = []
@@ -75,7 +85,7 @@ def create_simple_video(texto, nombre_salida, voz):
         segmentos_texto = []
         segmento_actual = ""
         for frase in frases:
-          if len(segmento_actual) + len(frase) < 800: # Aumento del maximo de caracteres
+          if len(segmento_actual) + len(frase) < 300:
             segmento_actual += " " + frase
           else:
             segmentos_texto.append(segmento_actual.strip())
@@ -130,20 +140,15 @@ def create_simple_video(texto, nombre_salida, voz):
             txt_clip = (ImageClip(text_img)
                       .set_start(tiempo_acumulado)
                       .set_duration(duracion)
-                      .set_position('center')
-                       .crossfadein(0.25))  # Animación de entrada
+                      .set_position('center'))
             
             video_segment = txt_clip.set_audio(audio_clip.set_start(tiempo_acumulado))
             clips_finales.append(video_segment)
             
             tiempo_acumulado += duracion
             time.sleep(0.2)
-
         
         video_final = concatenate_videoclips(clips_finales, method="compose")
-         # Limitamos la duración a 60 segundos
-        if video_final.duration > 60:
-            video_final = video_final.subclip(0, 60)
         
         video_final.write_videofile(
             nombre_salida,
@@ -202,6 +207,7 @@ def main():
     
     uploaded_file = st.file_uploader("Carga un archivo de texto", type="txt")
     voz_seleccionada = st.selectbox("Selecciona la voz", options=list(VOCES_DISPONIBLES.keys()))
+    logo_url = "https://yt3.ggpht.com/pBI3iT87_fX91PGHS5gZtbQi53nuRBIvOsuc-Z-hXaE3GxyRQF8-vEIDYOzFz93dsKUEjoHEwQ=s176-c-k-c0x00ffffff-no-rj"
     
     if uploaded_file:
         texto = uploaded_file.read().decode("utf-8")
@@ -210,13 +216,10 @@ def main():
         if st.button("Generar Video"):
             with st.spinner('Generando video...'):
                 nombre_salida_completo = f"{nombre_salida}.mp4"
-                success, message = create_simple_video(texto, nombre_salida_completo, voz_seleccionada)
+                success, message = create_simple_video(texto, nombre_salida_completo, voz_seleccionada, logo_url)
                 if success:
                   st.success(message)
-                  
-                  # Mostrar el video con formato vertical
-                  st.video(nombre_salida_completo, format="video/mp4")
-                  
+                  st.video(nombre_salida_completo)
                   with open(nombre_salida_completo, 'rb') as file:
                     st.download_button(label="Descargar video",data=file,file_name=nombre_salida_completo)
                     
