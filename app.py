@@ -40,7 +40,7 @@ VOCES_DISPONIBLES = {
 }
 
 # Función de creación de texto
-def create_text_image(text, size=(1080, 1920), font_size=48, line_height=60):
+def create_text_image(text, size=(1080, 1920), font_size=50, line_height=70):
     img = Image.new('RGB', size, 'black')
     draw = ImageDraw.Draw(img)
     try:
@@ -56,7 +56,7 @@ def create_text_image(text, size=(1080, 1920), font_size=48, line_height=60):
         current_line.append(word)
         test_line = ' '.join(current_line)
         left, top, right, bottom = draw.textbbox((0, 0), test_line, font=font)
-        if right > size[0] - 60:
+        if right > size[0] - 100:  # Ajustado para más espacio horizontal
             current_line.pop()
             lines.append(' '.join(current_line))
             current_line = [word]
@@ -74,31 +74,32 @@ def create_text_image(text, size=(1080, 1920), font_size=48, line_height=60):
     return np.array(img)
 
 
-def split_text_into_segments(text, max_segment_length=450, max_time=15):
+def split_text_into_segments(text, max_segment_length=800, max_time=10):  # Mayor longitud y tiempo
     frases = [f.strip() + "." for f in text.split('.') if f.strip()]
     segments = []
     current_segment = ""
+
     for frase in frases:
-        if len(current_segment) + len(frase) <= max_segment_length:
-            current_segment += " " + frase
-        else:
-            segments.append(current_segment.strip())
-            current_segment = frase
+       if len(current_segment) + len(frase) <= max_segment_length:
+           current_segment += " " + frase
+       else:
+           segments.append(current_segment.strip())
+           current_segment = frase
     if current_segment:
-        segments.append(current_segment.strip())
+       segments.append(current_segment.strip())
 
     adjusted_segments = []
     for segment in segments:
-        words = segment.split()
-        current_segment_time = ""
-        for word in words:
+       words = segment.split()
+       current_segment_time = ""
+       for word in words:
             if len(current_segment_time.split(" ")) < max_time:
-                current_segment_time += word + " "
+                 current_segment_time += word + " "
             else:
-                adjusted_segments.append(current_segment_time.strip())
-                current_segment_time = word + " "
-        if current_segment_time:
-            adjusted_segments.append(current_segment_time.strip())
+                 adjusted_segments.append(current_segment_time.strip())
+                 current_segment_time = word + " "
+       if current_segment_time:
+           adjusted_segments.append(current_segment_time.strip())
 
     return adjusted_segments
 
