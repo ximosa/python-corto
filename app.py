@@ -40,7 +40,7 @@ VOCES_DISPONIBLES = {
 }
 
 # Función de creación de texto
-def create_text_image(text, size=(1080, 1920), font_size=50, line_height=70):
+def create_text_image(text, size=(1080, 1920), font_size=44, line_height=58):
     img = Image.new('RGB', size, 'black')
     draw = ImageDraw.Draw(img)
     try:
@@ -56,7 +56,7 @@ def create_text_image(text, size=(1080, 1920), font_size=50, line_height=70):
         current_line.append(word)
         test_line = ' '.join(current_line)
         left, top, right, bottom = draw.textbbox((0, 0), test_line, font=font)
-        if right > size[0] - 100:  # Ajustado para más espacio horizontal
+        if right > size[0] - 80:  # Ajustado para más espacio horizontal
             current_line.pop()
             lines.append(' '.join(current_line))
             current_line = [word]
@@ -74,7 +74,7 @@ def create_text_image(text, size=(1080, 1920), font_size=50, line_height=70):
     return np.array(img)
 
 
-def split_text_into_segments(text, max_segment_length=800, max_time=10):  # Mayor longitud y tiempo
+def split_text_into_segments(text, max_segment_length=1500, max_time=15):
     frases = [f.strip() + "." for f in text.split('.') if f.strip()]
     segments = []
     current_segment = ""
