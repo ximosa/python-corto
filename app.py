@@ -48,60 +48,35 @@ def create_text_image(text, size=(1080, 1920), font_size=44, line_height=58):
     except:
         font = ImageFont.load_default()
 
-    words = text.split()
-    lines = []
-    current_line = []
+    # Calculate the bounding box to center the text vertically
+    left, top, right, bottom = draw.multiline_textbbox((0, 0), text, font=font, align="center", spacing=8)
+    text_height = bottom - top
+    y = (size[1] - text_height) // 2
 
-    for word in words:
-        current_line.append(word)
-        test_line = ' '.join(current_line)
-        left, top, right, bottom = draw.textbbox((0, 0), test_line, font=font)
-        if right > size[0] - 80:  # Ajustado para más espacio horizontal
-            current_line.pop()
-            lines.append(' '.join(current_line))
-            current_line = [word]
-    lines.append(' '.join(current_line))
+    # Use multiline_text to draw the text
+    draw.multiline_text( ((size[0] - (right - left)) // 2, y), text, font=font, fill="white", align="center", spacing=8)
 
-    total_height = len(lines) * line_height
-    y = (size[1] - total_height) // 2
-
-    for line in lines:
-        left, top, right, bottom = draw.textbbox((0, 0), line, font=font)
-        x = (size[0] - (right - left)) // 2
-        draw.text((x, y), line, font=font, fill="white")
-        y += line_height
 
     return np.array(img)
 
 
-def split_text_into_segments(text, max_segment_length=1500, max_time=15):
+def split_text_into_segments(text, max_segment_length=1500):
     frases = [f.strip() + "." for f in text.split('.') if f.strip()]
     segments = []
     current_segment = ""
 
     for frase in frases:
-       if len(current_segment) + len(frase) <= max_segment_length:
-           current_segment += " " + frase
-       else:
-           segments.append(current_segment.strip())
-           current_segment = frase
+        if len(current_segment) + len(frase) <= max_segment_length:
+            current_segment += " " + frase
+        else:
+            segments.append(current_segment.strip())
+            current_segment = frase
     if current_segment:
-       segments.append(current_segment.strip())
+        segments.append(current_segment.strip())
 
-    adjusted_segments = []
-    for segment in segments:
-       words = segment.split()
-       current_segment_time = ""
-       for word in words:
-            if len(current_segment_time.split(" ")) < max_time:
-                 current_segment_time += word + " "
-            else:
-                 adjusted_segments.append(current_segment_time.strip())
-                 current_segment_time = word + " "
-       if current_segment_time:
-           adjusted_segments.append(current_segment_time.strip())
 
-    return adjusted_segments
+    return segments
+
 
 
 # Función de creación de video
