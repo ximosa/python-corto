@@ -116,9 +116,19 @@ def create_text_image(text, size=IMAGE_SIZE_TEXT, font_size=DEFAULT_FONT_SIZE,
         y += line_height
     return np.array(img)
 
-def create_subscription_image(logo_url, size=IMAGE_SIZE_SUBSCRIPTION, font_size=100):
+def create_subscription_image(logo_url, size=IMAGE_SIZE_SUBSCRIPTION, font_size=100,
+                             background_image=None, bg_color="black"):
     """Creates an image for the subscription message."""
-    img = Image.new('RGB', size, (255, 0, 0))
+    if background_image:
+      try:
+          img = Image.open(background_image).convert("RGB")
+          img = img.resize(size)
+      except Exception as e:
+        logging.error(f"Error al cargar imagen de fondo para la suscripción: {str(e)}, usando fondo negro.")
+        img = Image.new('RGB', size, bg_color)
+    else:
+      img = Image.new('RGB', size, bg_color)
+
     draw = ImageDraw.Draw(img)
     try:
         font = ImageFont.truetype(FONT_PATH, font_size)
@@ -232,9 +242,9 @@ def create_simple_video(texto, nombre_salida, voz, logo_url, font_size, bg_color
             
             tiempo_acumulado += duracion
             time.sleep(0.2)
-
+        
         # Añadir clip de suscripción
-        subscribe_img = create_subscription_image(logo_url)
+        subscribe_img = create_subscription_image(logo_url, background_image=background_image, bg_color=bg_color)
         duracion_subscribe = SUBSCRIPTION_DURATION
 
         subscribe_clip = (ImageClip(subscribe_img)
@@ -243,7 +253,7 @@ def create_simple_video(texto, nombre_salida, voz, logo_url, font_size, bg_color
                         .set_position('center'))
 
         clips_finales.append(subscribe_clip)
-        
+
         video_final = concatenate_videoclips(clips_finales, method="compose")
         
         video_final.write_videofile(
