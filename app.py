@@ -23,7 +23,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_credentials.json"
 # Constantes
 TEMP_DIR = "temp"
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"  # Ajusta la ruta si es necesario
-DEFAULT_FONT_SIZE = 70
+DEFAULT_FONT_SIZE = 50  # Reducimos el tamaño de fuente por defecto
 VIDEO_FPS = 24
 VIDEO_CODEC = 'libx264'
 AUDIO_CODEC = 'aac'
@@ -116,7 +116,7 @@ def create_text_image(text, size=IMAGE_SIZE_TEXT, font_size=DEFAULT_FONT_SIZE,
         y += line_height
     return np.array(img)
 
-def create_subscription_image(logo_url, size=IMAGE_SIZE_SUBSCRIPTION, font_size=80, #fuente mas pequeña
+def create_subscription_image(logo_url, size=IMAGE_SIZE_SUBSCRIPTION, font_size=70, #reducimos tamaño de la fuente
                              background_image=None, bg_color="black"):
     """Creates an image for the subscription message."""
     if background_image:
@@ -147,17 +147,21 @@ def create_subscription_image(logo_url, size=IMAGE_SIZE_SUBSCRIPTION, font_size=
     except Exception as e:
         logging.error(f"Error al cargar el logo: {str(e)}")
 
-    text1 = "¡SUSCRÍBETE A LECTOR DE SOMBRAS!"
-    left1, top1, right1, bottom1 = draw.textbbox((0, 0), text1, font=font)
-    x1 = (size[0] - (right1 - left1)) // 2
-    y1 = (size[1] - (bottom1 - top1)) // 2 - (bottom1 - top1) // 2 - 80 #ajusto los textos mas arriba
+    text1_line1 = "¡SUSCRÍBETE A" # Dividimos el texto en dos lineas
+    text1_line2 = "LECTOR DE SOMBRAS!"
+    
+    left1_1, top1_1, right1_1, bottom1_1 = draw.textbbox((0, 0), text1_line1, font=font)
+    left1_2, top1_2, right1_2, bottom1_2 = draw.textbbox((0, 0), text1_line2, font=font)
+    x1 = (size[0] - max(right1_1 - left1_1, right1_2-left1_2)) // 2 # Centramos ambas lineas
+    y1 = (size[1] - (bottom1_1 - top1_1 + bottom1_2 - top1_2)) // 2 - 40 # Ajustamos la posicion
 
-    draw.text((x1, y1), text1, font=font, fill="white")
-
+    draw.text((x1, y1), text1_line1, font=font, fill="white")
+    draw.text((x1, y1 + (bottom1_1-top1_1)), text1_line2, font=font, fill="white") # dibuja el texto en la segunda linea
+    
     text2 = "Dale like y activa la campana 🔔"
     left2, top2, right2, bottom2 = draw.textbbox((0, 0), text2, font=font2)
     x2 = (size[0] - (right2 - left2)) // 2
-    y2 = (size[1] - (bottom2 - top2)) // 2 + (bottom1 - top1) // 2 + 40 # ajuto el texto mas abajo
+    y2 = y1 + (bottom1_1 - top1_1) + (bottom1_2-top1_2) + 40 # Ajustamos la posicion del texto secundario
     draw.text((x2, y2), text2, font=font2, fill="white")
     return np.array(img)
     
@@ -245,7 +249,7 @@ def create_simple_video(texto, nombre_salida, voz, logo_url, font_size, bg_color
             time.sleep(0.2)
         
         # Añadir clip de suscripción
-        subscribe_img = create_subscription_image(logo_url, background_image=background_image, bg_color=bg_color, font_size=80)
+        subscribe_img = create_subscription_image(logo_url, background_image=background_image, bg_color=bg_color, font_size=70)
         duracion_subscribe = SUBSCRIPTION_DURATION
 
         subscribe_clip = (ImageClip(subscribe_img)
