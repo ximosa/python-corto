@@ -32,7 +32,7 @@ VIDEO_THREADS = 4
 IMAGE_SIZE_TEXT = (1080, 1920) #Tamaño de imagen para texto
 IMAGE_SIZE_SUBSCRIPTION = (1080, 1920) #Tamaño de imagen para suscripcion
 SUBSCRIPTION_DURATION = 5
-LOGO_SIZE = (200, 200)
+LOGO_SIZE = (150, 150) #reducido el tamaño del logo
 VIDEO_SIZE = (1080, 1920)  # Tamaño del video vertical
 
 # Configuración de voces
@@ -116,7 +116,7 @@ def create_text_image(text, size=IMAGE_SIZE_TEXT, font_size=DEFAULT_FONT_SIZE,
         y += line_height
     return np.array(img)
 
-def create_subscription_image(logo_url, size=IMAGE_SIZE_SUBSCRIPTION, font_size=100,
+def create_subscription_image(logo_url, size=IMAGE_SIZE_SUBSCRIPTION, font_size=80, #fuente mas pequeña
                              background_image=None, bg_color="black"):
     """Creates an image for the subscription message."""
     if background_image:
@@ -150,13 +150,14 @@ def create_subscription_image(logo_url, size=IMAGE_SIZE_SUBSCRIPTION, font_size=
     text1 = "¡SUSCRÍBETE A LECTOR DE SOMBRAS!"
     left1, top1, right1, bottom1 = draw.textbbox((0, 0), text1, font=font)
     x1 = (size[0] - (right1 - left1)) // 2
-    y1 = (size[1] - (bottom1 - top1)) // 2 - (bottom1 - top1) // 2 - 100 #ajusto los textos mas arriba
+    y1 = (size[1] - (bottom1 - top1)) // 2 - (bottom1 - top1) // 2 - 80 #ajusto los textos mas arriba
+
     draw.text((x1, y1), text1, font=font, fill="white")
 
     text2 = "Dale like y activa la campana 🔔"
     left2, top2, right2, bottom2 = draw.textbbox((0, 0), text2, font=font2)
     x2 = (size[0] - (right2 - left2)) // 2
-    y2 = (size[1] - (bottom2 - top2)) // 2 + (bottom1 - top1) // 2 + 50 # ajuto el texto mas abajo
+    y2 = (size[1] - (bottom2 - top2)) // 2 + (bottom1 - top1) // 2 + 40 # ajuto el texto mas abajo
     draw.text((x2, y2), text2, font=font2, fill="white")
     return np.array(img)
     
@@ -244,7 +245,7 @@ def create_simple_video(texto, nombre_salida, voz, logo_url, font_size, bg_color
             time.sleep(0.2)
         
         # Añadir clip de suscripción
-        subscribe_img = create_subscription_image(logo_url, background_image=background_image, bg_color=bg_color)
+        subscribe_img = create_subscription_image(logo_url, background_image=background_image, bg_color=bg_color, font_size=80)
         duracion_subscribe = SUBSCRIPTION_DURATION
 
         subscribe_clip = (ImageClip(subscribe_img)
