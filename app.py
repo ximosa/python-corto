@@ -62,27 +62,26 @@ VOCES_DISPONIBLES = {
 
 def create_text_image(text, size=IMAGE_SIZE_TEXT, font_size=DEFAULT_FONT_SIZE,
                       bg_color="black", text_color="white", background_image=None,
-                      stretch_background=False, full_size_background=False):
+                      stretch_background=False):
     """Creates a text image with the specified text and styles."""
-    if full_size_background:
-      size = VIDEO_SIZE
-
+    
     if background_image:
         try:
             img = Image.open(background_image).convert("RGB")
             if stretch_background:
                 img = img.resize(size)
             else:
-              img.thumbnail(size)
-              new_img = Image.new('RGB', size, bg_color)
-              new_img.paste(img, ((size[0]-img.width)//2, (size[1]-img.height)//2))
-              img = new_img
+                img.thumbnail(size)
+                new_img = Image.new('RGB', size, bg_color)
+                new_img.paste(img, ((size[0]-img.width)//2, (size[1]-img.height)//2))
+                img = new_img
+            
         except Exception as e:
             logging.error(f"Error al cargar imagen de fondo: {str(e)}, usando fondo {bg_color}.")
             img = Image.new('RGB', size, bg_color)
     else:
         img = Image.new('RGB', size, bg_color)
-
+    
     draw = ImageDraw.Draw(img)
     try:
         font = ImageFont.truetype(FONT_PATH, font_size)
@@ -222,8 +221,7 @@ def create_simple_video(texto, nombre_salida, voz, logo_url, font_size, bg_color
             text_img = create_text_image(segmento, font_size=font_size,
                                     bg_color=bg_color, text_color=text_color,
                                     background_image=background_image,
-                                    stretch_background=stretch_background,
-                                    full_size_background=True)
+                                    stretch_background=stretch_background)
             txt_clip = (ImageClip(text_img)
                       .set_start(tiempo_acumulado)
                       .set_duration(duracion)
